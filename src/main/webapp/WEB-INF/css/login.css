@@ -1,0 +1,57 @@
+@CHARSET "UTF-8";
+body{
+	/*background-image: url(img/6.jpg);*/
+}
+.section{
+	display: flex;
+	height: 80vh;/*!!!!响应式垂直居中重点!!!!*/
+}
+
+.navbar{
+	width: 100%;
+	border: 0px solid saddlebrown;
+}
+.section-login{
+	width: 400px;  
+	height: 400px;
+	border: 0px solid forestgreen;
+	margin:auto; 
+}
+.section-login,.section-card{
+	background-color: white;
+}
+.section-card{
+	border-top-left-radius:5%;
+	border-top-right-radius:5%;
+}
+.section-login-header{
+	height: ;
+}
+.section-login-body{
+	padding:90px 30px 15px 30px;
+	border: 1px solid #E0E0E0;
+}
+.section-login-cells{
+	border: 0px solid seagreen;
+	display: inline-block;
+	width: 100%; 
+}
+.section-card{
+	height: 40px;
+	padding: 6px 0;
+}
+.section-card-stu{
+	border-bottom: none;
+}
+.protocol{
+	width: 400px;
+	height: 4em;
+	font-size: 0.7em;
+	border: 0px solid #182631;
+	margin:0 auto;
+	text-align: center;
+}
+.section-login-message{
+	padding: 20px 0;
+	text-align: center;
+}

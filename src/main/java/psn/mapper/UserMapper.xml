@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="psn.mapper.UserMapper">
+	<resultMap id="baseMap" type="psn.pojo.SysUser">
+		<result property="uuid" column="uuid"/>
+		<result property="usercode" column="usercode"/>
+		<result property="password" column="password"/>
+		<collection property="roles" ofType="Role" column="uuid">
+			<result property="id" column="id"/>
+			<result property="name" column="name"/> 
+		</collection>
+	</resultMap> 
+	<insert id="create" parameterType="SysUser">
+		insert into sysuser values(#{uuid},#{usercode},#{password})
+	</insert>
+	<select id="findSysuserByUsercode" parameterType="String" resultMap="baseMap">
+		select u.*,r.* from sysuser u 
+		left join user_role_id ur on u.uuid=ur.userId
+		left join role r on r.id=ur.roleId
+		where u.usercode=#{usercode}
+	</select>
+	<select id="findSysPermissionList" resultType="SysPermission">
+		select r.* from sysuser u 
+		left join user_role_relation ur on u.uuid=ur.userId
+		left join role r on r.id=ur.roleId
+		left join on role_permission_id rp on r.id=rp.roleId
+		left join permission p on p.id=rp.permissionId
+		where u.id=#{userId}
+	</select>
+	<select id="findMenuList"></select>
+	<select id="retrieveSize" resultType="Integer">
+		select count(uuid) from sysuser
+	</select>
+	<select id="pagination" parameterType="Map" resultMap="baseMap">
+		SELECT s.*,r.* FROM sysuser s 
+		LEFT JOIN user_role_id ur ON s.uuid = ur.userId 
+		LEFT JOIN role r ON r.id = ur.roleId 
+		LIMIT #{start},#{end}
+	</select>
+	<select id="findByS"></select>
+</mapper>
