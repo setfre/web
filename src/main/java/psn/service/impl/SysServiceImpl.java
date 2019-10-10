@@ -20,9 +20,9 @@ import psn.utils.PaginationUtil;
 @Service
 public class SysServiceImpl extends BaseService implements SysService{
 
-	public ActiveUser authenticat(String usercode, String password) throws InLoginException{
+	public SysUser authenticat(String usercode, String password) throws InLoginException{
 		// TODO Auto-generated method stub
-		SysUser sysUser = findSysuserByUsercode(usercode);
+		SysUser sysUser = userMapper.findSysuserByUsercode(usercode);
 		
 		//认证用户存在
 		if(sysUser == null){
@@ -34,7 +34,7 @@ public class SysServiceImpl extends BaseService implements SysService{
 			throw new InLoginException("密码错误");
 		}
 		
-		return acceptAuthenticat(sysUser);
+		return sysUser;
 	}
 
 	private ActiveUser acceptAuthenticat(SysUser sysUser) {
@@ -60,29 +60,29 @@ public class SysServiceImpl extends BaseService implements SysService{
 		user.setUuid(UUID.randomUUID().toString());
 		//MD5加密
 		user.setPassword(MD5Util.getEncryptedPaasword(user.getPassword()));
-		
 		//存入数据库
-		System.out.println("USER:"+user);
 		userMapper.create(user);
 	}
-	
+	public void updateUserHeaderImg(SysUser sysUser){
+		userMapper.update(sysUser);
+	}
 	public boolean isExists(SysUser user){
-		SysUser sysUser = findSysuserByUsercode(user.getUsercode());
+		SysUser sysUser = userMapper.findSysuserByUsercode(user.getUsercode());
 		if(sysUser == null){
 			return false;
 		}
 		return true;
 	}
+	
 	public boolean isValid(SysUser user){
 		return true;
 	}
-	
 	
 	public SysUser findSysuserByUsercode(String usercode) {
 		// TODO Auto-generated method stub
 		return userMapper.findSysuserByUsercode(usercode);
 	}
-
+	
 	public List<SysPermission> findSysPermissionList(String userid) {
 		// TODO Auto-generated method stub
 		return userMapper.findSysPermissionList(userid);

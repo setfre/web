@@ -60,6 +60,11 @@ div.desc {
 }
 </style> 
 <body> 
+	<!-- spring mvc上传文件模式 -->
+	<form action="/demo/sysparam/doUploadUserHeaderImg.action" enctype="multipart/form-data" method="post">
+		<input type="file" name="file"/> 
+		<input type="submit" value="click me"/>
+	</form>
 	<ul class="picture">
 		<c:forEach items="${imgPaths}" var="imgPath">
 			<li>

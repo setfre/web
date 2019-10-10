@@ -141,7 +141,13 @@
 	window.onload = function(){
 		getLangDate();
 	}
-	
+	$(function(){
+		
+		$('#form-btn').click(function(){
+			
+			$.ajax()
+		})
+	})
 </script>
 <body>
 	<!--
@@ -153,6 +159,7 @@
 		<div class="navbar">
 			<a href="/demo/sysparam/toUserManager.action">用户管理</a>
 			<a href="/demo/sysparam/toShow.action">主页</a> 
+			<a href="/demo/sysparam/toPic.action">主页</a> 
 			<a href="/demo/sysparam/download.action?fileName=mobile.jar">下载图片</a>
 		</div>
 	</div>
@@ -208,7 +215,7 @@
 					<button id="form-btn" class="btn btn-primary w-100" type="submit">登录</button>
 				</div>
 				
-				<c:if test="${message != null}">
+				<c:if test="${!empty message}">
 					<div class="section-login-cells section-login-message">
 						<c:if test="${status == 100 || status == 101}">
 							<div class="alert alert-danger">

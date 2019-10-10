@@ -1,7 +1,11 @@
 package psn.controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -9,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
+import org.apache.logging.log4j.core.config.plugins.ResolverUtil.NameEndsWith;
 import org.eclipse.jdt.internal.compiler.util.Util.Displayable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -37,10 +42,11 @@ public class SysparamController {
 	
 	public static Logger logger = Logger.getLogger(SysparamController.class);
 	
-	@RequestMapping("exit")
-	public void exit(HttpSession session){
+	@RequestMapping("doExit")
+	public void exit(HttpSession session,HttpServletResponse response) throws IOException{
 		
 		session.invalidate();
+		response.sendRedirect("toShow.action");
 	}
 	
 	@RequestMapping("verifyCode")
@@ -51,7 +57,6 @@ public class SysparamController {
 		OutputStream outputStream = null;
 		
 		try {
-			
 			outputStream = response.getOutputStream();
 			
 			request.getSession().setAttribute("verifyCode", verifyCode);
@@ -81,18 +86,16 @@ public class SysparamController {
 		ModelAndView modelAndView = new ModelAndView();
 
 		String verifyCode = (String) request.getSession().getAttribute("verifyCode");
-
-		System.out.println("\n randomCode:"+randomCode+",verifyCode:"+verifyCode);
 		//用户身份认证
-		ActiveUser activeUser = null;
 		try {
 			//校验验证码 
 			if(!randomCode.toUpperCase().equals(verifyCode)){
 				throw new InLoginException("验证码错误");
 			}
-			activeUser = sysService.authenticat(usercode, password);
+			//认证
+			SysUser sysUser = sysService.authenticat(usercode, password);
 			//记录session
-			request.getSession().setAttribute("activeUser", activeUser);
+			request.getSession().setAttribute("activeUser", sysUser);
 			
 			modelAndView.setViewName("jsp/show");
 		} catch (InLoginException e) {
@@ -101,7 +104,7 @@ public class SysparamController {
 			
 			modelAndView.addObject("message", e.getMessage());
 			
-			modelAndView.setViewName("jsp/error");
+			modelAndView.setViewName("jsp/login");
 		}
 		
 		//跳转到首页
@@ -132,12 +135,59 @@ public class SysparamController {
 			
 			modelAndView.addObject("message", e.getMessage());
 			
-			modelAndView.setViewName("jsp/error");
+			modelAndView.setViewName("jsp/register");
 		}
 		
 		return modelAndView;
 	}
 
+	@RequestMapping("doUploadUserHeaderImg")
+	public ModelAndView doUploadUserHeaderImg(HttpServletRequest request,
+			@RequestParam("file")MultipartFile multipartFile) throws IOException{
+		
+		ModelAndView modelAndView = new ModelAndView();
+		//获得用户名
+		SysUser activeUser = (SysUser) request.getSession().getAttribute("activeUser");
+		System.out.println("\n"+activeUser);
+		try {
+			if(activeUser == null){
+				throw new InLoginException("请先登陆!");
+			}
+			if(multipartFile.isEmpty()){
+				throw new InLoginException("已存在的文件!");
+			}
+			//获得服务器根目录
+			StringBuffer rootPath = new StringBuffer(WebUtils.getRealPath(request.getServletContext(), ""));
+			//构造父级目录
+			File file = new File(rootPath.toString()).getParentFile();
+			//生成搜索目标路径
+			rootPath.append("resources\\users\\" + activeUser.getUsercode()+ "\\common");
+			//上传到本地返回绝对路径
+			String absolutePaths = FileUtil.doUploadFile(multipartFile,rootPath.toString());
+			//转换目录图片的相对路径
+			String relativePath = absolutePaths.substring(file.toString().length(), absolutePaths.length());
+			
+			activeUser.setHeaderImgPath(relativePath);
+			//保存到本地数据库
+			sysService.updateUserHeaderImg(activeUser);
+			
+			modelAndView.addObject("message", "上传成功");
+			
+			modelAndView.setViewName("jsp/success");
+		} catch (FileAlreadyExistsException e) {
+			
+			modelAndView.addObject("message", e.getMessage());
+			
+			modelAndView.setViewName("jsp/error");
+		} catch (InLoginException e) {
+			modelAndView.addObject("message", e.getMessage());
+			
+			modelAndView.setViewName("jsp/error");
+		}
+
+		return modelAndView;
+	}
+	
 	@RequestMapping(value = "doUpload",method = RequestMethod.POST)
 	public String doUploadFile(HttpServletRequest request,
 			@RequestParam("file")MultipartFile multipartFile) throws IOException{
@@ -148,6 +198,8 @@ public class SysparamController {
 		if(!multipartFile.isEmpty()){
 			//获得服务器根目录
 			String rootPath = WebUtils.getRealPath(request.getServletContext(), "/resources/users");
+			
+			System.out.println(rootPath);
 			//上传到本地
 			FileUtil.doUploadFile(multipartFile, rootPath);
 			
@@ -210,7 +262,6 @@ public class SysparamController {
 					e.printStackTrace();
 				}
 			}
-			
 		}
 		return null;
 	}
@@ -218,7 +269,7 @@ public class SysparamController {
 	@RequestMapping("toUserManager")
 	public String userManager(HttpServletRequest request,
 			@RequestParam(defaultValue="1")Integer currentIndex,
-			@RequestParam(defaultValue="5")Integer recordShowSize){
+			@RequestParam(defaultValue="5")Integer recordShowSize) throws IOException{
 		
 		ActiveUser activeUser = (ActiveUser) request.getAttribute("activeUser");
 		
@@ -230,19 +281,46 @@ public class SysparamController {
 			}
 		}
 		Pagination<SysUser> pagination = sysService.retrieveUserInfoPagination(currentIndex,recordShowSize);
+		//获得服务器根目录
+		StringBuffer rootPath = new StringBuffer(WebUtils.getRealPath(request.getServletContext(), ""));
+		//构造父级目录
+		File file = new File(rootPath.toString()).getParentFile();
+		//生成搜索目标路径
+		rootPath.append("resources\\end");
+		//返回指定目录图片的绝对路径
+		List<String> absolutePaths = FileUtil.findImg(rootPath.toString());
+		//转换目录图片的相对路径
+		List<String> relativePaths = new ArrayList<String>();
+		for(String path:absolutePaths){
+			relativePaths.add(path.substring(file.toString().length(), path.length()));
+		}
 		
-		System.out.println(pagination);
-		
+		request.setAttribute("imgPaths", relativePaths);
 		request.setAttribute("pagination", pagination);
 		
 		return "jsp/show";
 	}
+	
 	@RequestMapping("toPic")
-	public ModelAndView display(){
+	public ModelAndView display(HttpServletRequest request){
 		ModelAndView modelAndView = new ModelAndView();
 		
 		try {
-			modelAndView.addObject("imgPaths",  FileUtil.findImg("C:\\Users\\安政宇\\Desktop\\picture"));
+			//获得服务器根目录
+			StringBuffer rootPath = new StringBuffer(WebUtils.getRealPath(request.getServletContext(), ""));
+			//构造父级目录
+			File file = new File(rootPath.toString()).getParentFile();
+			//生成搜索目标路径
+			rootPath.append("resources\\picture");
+			//返回指定目录图片的绝对路径 
+			List<String> absolutePaths = FileUtil.findImg(rootPath.toString());
+			//转换目录图片的相对路径
+			List<String> relativePaths = new ArrayList<String>();
+			for(String path:absolutePaths){
+				relativePaths.add(path.substring(file.toString().length(), path.length()));
+			}
+			
+			modelAndView.addObject("imgPaths",  relativePaths);
 			modelAndView.addObject("message", "有图片");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -250,7 +328,7 @@ public class SysparamController {
 			e.printStackTrace();
 		}
 		modelAndView.setViewName("jsp/pic");;
-		return modelAndView;
+		return modelAndView; 
 	}
 	@RequestMapping("toShow")
 	public ModelAndView toShow(){
@@ -271,5 +349,4 @@ public class SysparamController {
 	public String toError(){
 		return "jsp/error";
 	}
-
 }

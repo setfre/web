@@ -20,9 +20,6 @@
 	.cells,.table-search,.table-search input,.cells-label{
 		float: left;
 	}
-	.table-search{
-		margin-right:4px;
-	}
 	.cells-label{
 		display:inline-block;
 		height:38px;
@@ -70,9 +67,11 @@
 		float: left;
 		width: 350px;
 	}
+	.show-sidbar{
+		display:flex;
+	}
 	.sidbar{
 		width: 216px;
-		height: 615px;
 		float: left; 
 		background-color: rgb(247,247,247);
 	}
@@ -166,10 +165,10 @@
 				</div>
 				<div class="show-nab-group">
 					<div class="show-nab-link">
-						<a href="/pet/petResourse/toPetshop.action">宠物商品</a>
+						<a href="/demo/sysparam/toPic.action">上传头像</a>
 					</div>
 					<div class="show-nab-link">
-						<a href="#">我的宠物</a>
+						<a href="/demo/sysparam/toPic.action">我的相册</a>
 					</div>
 					<div class="show-nab-link">
 						<a href="#">link3</a> 
@@ -181,23 +180,23 @@
 				<div class="show-nab-active show-nab-group">
 					<c:if test="${activeUser == null}">
 						<div class="show-nab-link">
-							<a href="/pet/userResourse/toLogin.action">登录</a>/
+							<a href="/demo/sysparam/toLogin.action">登录</a>/
 						</div>
 						
 						<div class="show-nab-link">
-							<a href="/pet/userResourse/toRegist.action">注册</a>
+							<a href="/demo/sysparam/toRegister.action">注册</a>
 						</div>
 					</c:if>
 					<c:if test="${activeUser != null}">
 						<!--头像 -->
 						<div class="show-nab-link">
-							<span>${user.username}</span>
+							<span>${activeUser.usercode}</span>
 						</div> 
 						<div class="show-nab-link">
-							<img class="show-nab-img" src="img/p-71979987.jpg"/>
+							<img class="show-nab-img" src="${activeUser.headerImgPath }"/>
 						</div>
 						<div class="show-nab-link">
-							<a class="show-nab-link" href="/pet/userResourse/doExit.action">登出</a>
+							<a class="show-nab-link" href="/demo/sysparam/doExit.action">登出</a>
 						</div>
 					</c:if>
 				</div>
@@ -205,7 +204,7 @@
 			
 			<div class="w-100 px-0 show-body">
 				<!--侧边栏 -->
-				<div class="show-sider">
+				<div class="show-sidbar">
 					<div id="sidbar" class="sidbar">
 						<div class="sidbar-card">
 							<div class="sidbar-card-header card-header" >
@@ -224,7 +223,7 @@
 				</div>
 				<!-- 数据表格 -->
 				<div class="show-context">
-					<div id="top-img" class="carousel slide" data-ride="carousel" style="width:400px;margin: 0 auto;">
+					<div id="top-img" class="carousel slide" data-ride="carousel" style="margin: 0 auto;">
 						<ol class="carousel-indicators"> 
 							<li data-target="#top-img" data-slide-to="0" class="active"></li>
 							<li data-target="#top-img" data-slide-to="1"></li>
@@ -232,13 +231,13 @@
 						</ol>
 						<div class="carousel-inner">
 							<div class="carousel-item active">
-								<img class="d-block w-100" src="${imgPaths[0]}" alt="First slide">
-							</div>
+								<img class="d-block w-100" src="${imgPaths[0]}" width="304" height="228" alt="First slide">
+							</div> 
 							<div class="carousel-item">
-								<img class="d-block w-100" src="${imgPaths[1]}" alt="Second slide">
+								<img class="d-block w-100" src="${imgPaths[1]}" width="304" height="228" alt="Second slide">
 							</div>
 							<div class="carousel-item"> 
-								<img class="d-block w-100" src="${imgPaths[2]}" alt="Third slide">
+								<img class="d-block w-100" src="${imgPaths[2]}" width="304" height="228" alt="Third slide">
 							</div>
 						</div>
 						<a class="carousel-control-prev" href="#top-img" role="button" data-slide="prev">
@@ -255,7 +254,7 @@
 							<table class="table table-hover table-striped">
 								<thead> 
 									<tr> 
-										<th colspan="5">
+										<th colspan="6">
 											<h4> 
 												目前已有<span class="text-color">${isAdoping}</span>只宠物被成功领养！
 												还有<span class="text-color">${isAdoped}</span>只可爱的小动物等着您带回家！
@@ -271,39 +270,39 @@
 										</th>
 									</tr>  
 									<tr>
-										<th colspan="5">
+										<th colspan="6">
 											<form action="/pet/petResourse/doRetrievePetByKey.action" method="post"> 
 												<div class="table-header">
-													<div class="form-group table-search">
-														<div class="card bg-primary text-white cells-label">
-															<div class="card-body cell-label">宠物类型</div>
-														</div> 
+													<div class="table-search">
+														<div class="table-search"> 
+															<button type="button" class="btn btn-primary disabled">字段</button>
+														</div>
 														<select id="select-sc-id" class="form-control cells" name="petypeId">
 															<option value="0">全部</option>
 															<c:forEach items="${pettypes}" var="type">
 																<option value="${type.id}">${type.typeName}</option> 
 															</c:forEach>
 														</select>
-													</div>
-													<c:if test="${!empty user && user.roleId == 2 }">
-														<div class="form-group table-search">
-															<div class="card bg-primary text-white cells-label">
-																<div class="card-body cell-label">领养状态</div>
-															</div> 
-															<select id="select-sc-id" class="form-control cells" name="adoptStatus">
-																<option value="0">全部</option>
-																<option value="1">未领养</option>
-																<option value="2">已领养</option>
-															</select>
+														<c:if test="${!empty activeUser}">
+															<div class="form-group table-search">
+																<div class="card bg-primary text-white cells-label">
+																	<div class="card-body cell-label">领养状态</div>
+																</div> 
+																<select id="select-sc-id" class="form-control cells" name="adoptStatus">
+																	<option value="0">全部</option>
+																	<option value="1">未领养</option>
+																	<option value="2">已领养</option>
+																</select>
+															</div>
+															<div class="form-group table-search-btn">
+																<a href='#' data-toggle='modal' data-target='#addPet'>添加宠物</a>
+																<a href='#' data-toggle='modal' data-target='#addPetType'>添加宠物类型</a>
+															</div>
+														</c:if>
+														
+														<div class="table-search"> 
+															<button type="submit" class="btn btn-primary">查找</button>
 														</div>
-														<div class="form-group table-search-btn">
-															<a href='#' data-toggle='modal' data-target='#addPet'>添加宠物</a>
-															<a href='#' data-toggle='modal' data-target='#addPetType'>添加宠物类型</a>
-														</div>
-													</c:if>
-													
-													<div class="form-group table-search"> 
-														<button type="submit" class="btn btn-primary">查找</button>
 													</div>
 												</div>
 											</form>
@@ -340,7 +339,7 @@
 								</tbody>
 								<tfoot>
 									<tr>
-										<th colspan="5">
+										<th colspan="6">
 											<div class="pagination-index col-7">
 												<ul class="pagination" id="pages_index">
 												
@@ -372,7 +371,7 @@
 														</c:if> 
 														<c:if test="${item != pagination.currentIndex}">
 															<li class="page-item">
-																<a class="page-link" href="http://localhost:8080/pet/petResourse/retrievePetPagination?currentIndex=${item}">${item}</a>
+																<a class="page-link" href="/pet/petResourse/retrievePetPagination?currentIndex=${item}">${item}</a>
 															</li>
 														</c:if> 
 													</c:forEach>

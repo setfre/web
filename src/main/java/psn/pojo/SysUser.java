@@ -7,6 +7,7 @@ public class SysUser {
 	private String uuid;	//id
 	private String usercode;//ÕËºÅ
 	private String password;//ÃÜÂë
+	private String headerImgPath;//Í·ÏñÂ·¾¶
 	private List<Role> roles;
 	
 		
@@ -15,6 +16,12 @@ public class SysUser {
 	}
 	public void setRoles(List<Role> roles) {
 		this.roles = roles;
+	}
+	public String getHeaderImgPath() {
+		return headerImgPath;
+	}
+	public void setHeaderImgPath(String headerImgPath) {
+		this.headerImgPath = headerImgPath;
 	}
 	public String getUuid() {
 		return uuid;

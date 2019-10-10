@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -26,11 +27,14 @@ import java.util.zip.ZipOutputStream;
 import org.apache.jasper.tagplugins.jstl.core.Out;
 import org.apache.log4j.Logger;
 import org.junit.Test;
+import org.slf4j.impl.StaticMDCBinder;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.mysql.jdbc.Field;
 
+import psn.execption.InLoginException;
 import psn.pojo.ActiveUser;
+import psn.pojo.SysUser;
 /**
  * 公开资源路径 /resources/users/username/common/
  * 私有资源路径 /resources/users/username/person/
@@ -41,12 +45,12 @@ public class FileUtil {
 	/*
 	 * 生成抽象路径并生成父类目录
 	 */
-	private static File generateRealPathBy(String parent,String child){
+	private static File generateRealPathBy(String parent,String child) throws FileAlreadyExistsException{
 		
 		File file = new File(parent,child);
 		//文件已存在
 		if(file.exists()){
-			return null;
+			throw new FileAlreadyExistsException("文件已存在");
 		}
 		//检查file的抽象路径名是否存在
 		File abstractPath = file.getParentFile();
@@ -61,19 +65,37 @@ public class FileUtil {
 		//file.createNewFile();
 		return file;
 	}
-	
-	public static void doUploadFile(MultipartFile multipartFile,String targetPath) throws IllegalStateException, IOException{
-		doUploadFile(multipartFile, null, targetPath);
+	public static String doUploadImg(MultipartFile multipartFile,SysUser activeUser,StringBuffer rootPath) throws IOException, InLoginException{
+		if(activeUser == null){
+			throw new InLoginException("请登录!");
+		}
+		
+		StringBuffer relativePath = new StringBuffer("");
+		relativePath.append("resources\\users");
+		relativePath.append(File.separator + activeUser.getUsercode());
+		relativePath.append(File.separator + "common");
+		//生成目标路径 
+		rootPath.append(relativePath); 
+		//开始上传
+		doUploadFile(multipartFile,rootPath.toString());
+		//生成相对路径  
+		relativePath.append(File.separator + multipartFile.getOriginalFilename());
+		relativePath.insert(0, "\\demo\\");
+		
+		System.out.println("\n rootPath:"+rootPath+",relativePath:"+relativePath);
+		return relativePath.toString();
+	}
+	public static String doUploadFile(MultipartFile multipartFile,String targetPath) throws IOException{
+		return doUploadFile(multipartFile, targetPath, null);
 	}
 	/**
 	 * 
 	 * @param multipartFile	spring mvc所提供的文件上传下载工具
 	 * @param activeUser	处于登陆状态的用户（可空
 	 * @param targetPath	上传文件存储到目标路径
-	 * @throws IllegalStateException
 	 * @throws IOException
 	 */
-	public static void doUploadFile(MultipartFile multipartFile,ActiveUser activeUser,String targetPath) throws IllegalStateException, IOException{
+	public static String doUploadFile(MultipartFile multipartFile,String targetPath,String targetName) throws IOException {
 		//获得文件名
 		String originalName = multipartFile.getOriginalFilename(); 
 		//获得文件类型
@@ -82,13 +104,10 @@ public class FileUtil {
 		long size = multipartFile.getSize();
 		
 		StringBuffer childPath = new StringBuffer("");
-		
-		if(activeUser != null){
-			//私有资源
-			childPath = childPath.append(activeUser.getUsercode()+File.separator);
-		}
+		//生成存储名字
+		childPath = (targetName != null && targetName != "")?childPath.append(targetName):childPath.append(originalName);
 		//生成存储路径
-		File file = generateRealPathBy(targetPath,childPath.append(originalName).toString());
+		File file = generateRealPathBy(targetPath,childPath.toString());
 		
 		System.out.println("文件名:"+originalName+",文件类型:"+type+",文件大小:"+size
 				+",上传时间:"+System.currentTimeMillis()+",文件目标目录:"+file.toString()
@@ -96,6 +115,8 @@ public class FileUtil {
 			
 		//存储到本地
 		multipartFile.transferTo(file);
+		
+		return file.toString();
 	}
 	
 	public static void downloadFile(String rootPath,String resourceName,OutputStream outputStream) throws IOException{
@@ -143,19 +164,6 @@ public class FileUtil {
 		return findFileBy(resourcePath,new String[]{".jpg",".jpeg"},true);
 	}
 	
-	@Test
-	public void test(){ 
-		try {
-			List<String> paths = findImg("C:\\Users\\安政宇\\Desktop\\picture");
-			for(String path:paths){
-				System.out.println(path);
-			}
-			System.out.println(paths.size());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 	/**
 	 * 
 	 * @param resourcePath	待搜索路径

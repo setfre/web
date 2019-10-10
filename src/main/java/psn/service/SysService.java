@@ -11,11 +11,12 @@ import psn.pojo.SysUser;
 public interface SysService {
 
 	//用户身份认证
-	public ActiveUser authenticat(String usercode,String password) throws InLoginException;
+	public SysUser authenticat(String usercode,String password) throws InLoginException;
 	
 	//注册用户
 	public void register(SysUser user) throws InLoginException;
 	
+	public void updateUserHeaderImg(SysUser sysUser);
 	//根据账号查询用户
 	public SysUser findSysuserByUsercode(String usercode);
 	

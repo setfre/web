@@ -6,26 +6,30 @@
 		<result property="uuid" column="uuid"/>
 		<result property="usercode" column="usercode"/>
 		<result property="password" column="password"/>
+		<result property="headerImgPath" column="headerImgPath"/>
 		<collection property="roles" ofType="Role" column="uuid">
 			<result property="id" column="id"/>
 			<result property="name" column="name"/> 
 		</collection>
 	</resultMap> 
 	<insert id="create" parameterType="SysUser">
-		insert into sysuser values(#{uuid},#{usercode},#{password})
-	</insert>
+		insert into sysuser values(#{uuid},#{usercode},#{password},null)
+	</insert> 
+	<update id="update" parameterType="SysUser">
+		update sysuser set headerImgPath=#{headerImgPath} where uuid=#{uuid}
+	</update>
 	<select id="findSysuserByUsercode" parameterType="String" resultMap="baseMap">
 		select u.*,r.* from sysuser u 
-		left join user_role_id ur on u.uuid=ur.userId
-		left join role r on r.id=ur.roleId
+		INNER join user_role_id ur on u.uuid=ur.userId
+		INNER join role r on r.id=ur.roleId
 		where u.usercode=#{usercode}
-	</select>
+	</select> 
 	<select id="findSysPermissionList" resultType="SysPermission">
 		select r.* from sysuser u 
-		left join user_role_relation ur on u.uuid=ur.userId
-		left join role r on r.id=ur.roleId
-		left join on role_permission_id rp on r.id=rp.roleId
-		left join permission p on p.id=rp.permissionId
+		INNER join user_role_relation ur on u.uuid=ur.userId
+		INNER join role r on r.id=ur.roleId
+		INNER join on role_permission_id rp on r.id=rp.roleId
+		INNER join permission p on p.id=rp.permissionId
 		where u.id=#{userId}
 	</select>
 	<select id="findMenuList"></select>

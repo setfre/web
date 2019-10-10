@@ -33,6 +33,7 @@
      		<mvc:exclude-mapping path="/sysparam/toPic.action"/>
      		<mvc:exclude-mapping path="/sysparam/toShow.action"/>
      		<mvc:exclude-mapping path="/sysparam/toUserManager.action"/>
+     		<mvc:exclude-mapping path="/sysparam/doUploadUserHeaderImg.action"/>
     		<bean class="psn.interceptor.LoginInterceptor" />  
      	</mvc:interceptor>
         <mvc:interceptor>
