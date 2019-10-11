@@ -131,7 +131,9 @@ public class SysparamController {
 			modelAndView.setViewName("jsp/login");
 		} catch (InLoginException e) {
 			// TODO Auto-generated catch block
-			logger.debug("randomCode:"+randomCode+",verifyCode:"+verifyCode);
+			if(logger.isDebugEnabled()){
+				logger.debug("randomCode:"+randomCode+",verifyCode:"+verifyCode);
+			}
 			
 			modelAndView.addObject("message", e.getMessage());
 			
